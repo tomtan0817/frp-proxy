@@ -27,24 +27,24 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     {
       key: '/domains',
       icon: <GlobalOutlined />,
-      label: 'My Domains',
+      label: '我的域名',
     },
     ...(admin
       ? [
           {
             key: '/admin/users',
             icon: <UserOutlined />,
-            label: 'Users',
+            label: '用户管理',
           },
           {
             key: '/admin/domains',
             icon: <AppstoreOutlined />,
-            label: 'Domains',
+            label: '域名管理',
           },
           {
             key: '/admin/invites',
             icon: <KeyOutlined />,
-            label: 'Invite Codes',
+            label: '邀请码',
           },
         ]
       : []),
@@ -78,10 +78,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           }}
         >
           <Text>
-            {user?.username} ({user?.role})
+            {user?.username}（{user?.role === 'admin' ? '管理员' : '用户'}）
           </Text>
           <Button icon={<LogoutOutlined />} onClick={handleLogout}>
-            Logout
+            退出登录
           </Button>
         </Header>
         <Content style={{ margin: 24, padding: 24, background: '#fff', borderRadius: 8 }}>

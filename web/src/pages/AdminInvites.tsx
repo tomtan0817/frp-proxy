@@ -24,7 +24,7 @@ export default function AdminInvites() {
       const res = await getInviteCodes();
       setCodes(res.data || []);
     } catch {
-      message.error('Failed to load invite codes');
+      message.error('加载邀请码失败');
     } finally {
       setLoading(false);
     }
@@ -37,36 +37,36 @@ export default function AdminInvites() {
   const handleCreate = async (values: any) => {
     try {
       await createInviteCode(values);
-      message.success('Invite code created');
+      message.success('邀请码创建成功');
       setCreateOpen(false);
       form.resetFields();
       fetchCodes();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to create invite code');
+      message.error(err.response?.data?.error || '创建邀请码失败');
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await deleteInviteCode(id);
-      message.success('Invite code deleted');
+      message.success('邀请码已删除');
       fetchCodes();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to delete');
+      message.error(err.response?.data?.error || '删除失败');
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      message.success('Copied!');
+      message.success('已复制');
     }).catch(() => {
-      message.error('Copy failed');
+      message.error('复制失败');
     });
   };
 
   const columns = [
     {
-      title: 'Code',
+      title: '邀请码',
       dataIndex: 'code',
       key: 'code',
       render: (code: string) => (
@@ -76,29 +76,29 @@ export default function AdminInvites() {
         </Space>
       ),
     },
-    { title: 'Max Uses', dataIndex: 'max_uses', key: 'max_uses' },
-    { title: 'Used', dataIndex: 'used_count', key: 'used_count' },
+    { title: '最大使用次数', dataIndex: 'max_uses', key: 'max_uses' },
+    { title: '已使用', dataIndex: 'used_count', key: 'used_count' },
     {
-      title: 'Expires At',
+      title: '过期时间',
       dataIndex: 'expires_at',
       key: 'expires_at',
-      render: (t: string) => (t ? new Date(t).toLocaleString() : 'Never'),
+      render: (t: string) => (t ? new Date(t).toLocaleString() : '永不过期'),
     },
     {
-      title: 'Created',
+      title: '创建时间',
       dataIndex: 'created_at',
       key: 'created_at',
       render: (t: string) => new Date(t).toLocaleString(),
     },
     {
-      title: 'Actions',
+      title: '操作',
       key: 'actions',
       render: (_: any, r: InviteCode) => (
         <Space>
           <Button size="small" icon={<CopyOutlined />} onClick={() => copyToClipboard(r.code)}>
-            Copy
+            复制
           </Button>
-          <Popconfirm title="Delete this invite code?" onConfirm={() => handleDelete(r.id)}>
+          <Popconfirm title="确定删除此邀请码？" onConfirm={() => handleDelete(r.id)} okText="确定" cancelText="取消">
             <Button size="small" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
@@ -109,19 +109,19 @@ export default function AdminInvites() {
   return (
     <>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>Invite Codes</h2>
+        <h2 style={{ margin: 0 }}>邀请码管理</h2>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-          Generate Code
+          生成邀请码
         </Button>
       </div>
       <Table dataSource={codes} columns={columns} rowKey="id" loading={loading} />
 
-      <Modal title="Generate Invite Code" open={createOpen} onCancel={() => setCreateOpen(false)} onOk={() => form.submit()} destroyOnClose>
+      <Modal title="生成邀请码" open={createOpen} onCancel={() => setCreateOpen(false)} onOk={() => form.submit()} destroyOnClose okText="确定" cancelText="取消">
         <Form form={form} onFinish={handleCreate} layout="vertical" preserve={false}>
-          <Form.Item name="max_uses" label="Max Uses" initialValue={1}>
+          <Form.Item name="max_uses" label="最大使用次数" initialValue={1}>
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
-          <Form.Item name="expires_in_hours" label="Expires In (hours)" initialValue={72}>
+          <Form.Item name="expires_in_hours" label="过期时间（小时）" initialValue={72}>
             <InputNumber min={1} style={{ width: '100%' }} />
           </Form.Item>
         </Form>

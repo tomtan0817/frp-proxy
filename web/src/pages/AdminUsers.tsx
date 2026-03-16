@@ -28,7 +28,7 @@ export default function AdminUsers() {
       const res = await getUsers(statusFilter || undefined);
       setUsers(res.data || []);
     } catch {
-      message.error('Failed to load users');
+      message.error('加载用户列表失败');
     } finally {
       setLoading(false);
     }
@@ -41,12 +41,12 @@ export default function AdminUsers() {
   const handleCreate = async (values: any) => {
     try {
       await createUser(values);
-      message.success('User created');
+      message.success('用户创建成功');
       setCreateOpen(false);
       createForm.resetFields();
       fetchUsers();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to create user');
+      message.error(err.response?.data?.error || '创建用户失败');
     }
   };
 
@@ -54,31 +54,31 @@ export default function AdminUsers() {
     if (!editingUser) return;
     try {
       await updateUser(editingUser.id, values);
-      message.success('User updated');
+      message.success('用户更新成功');
       setEditOpen(false);
       fetchUsers();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to update user');
+      message.error(err.response?.data?.error || '更新用户失败');
     }
   };
 
   const handleActivate = async (id: number) => {
     try {
       await activateUser(id);
-      message.success('User activated');
+      message.success('用户已激活');
       fetchUsers();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to activate');
+      message.error(err.response?.data?.error || '激活失败');
     }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await deleteUser(id);
-      message.success('User deleted');
+      message.success('用户已删除');
       fetchUsers();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to delete');
+      message.error(err.response?.data?.error || '删除失败');
     }
   };
 
@@ -91,35 +91,46 @@ export default function AdminUsers() {
     }
   };
 
+  const statusLabel = (s: string) => {
+    switch (s) {
+      case 'active': return '已激活';
+      case 'pending': return '待审核';
+      case 'disabled': return '已禁用';
+      default: return s;
+    }
+  };
+
+  const roleLabel = (r: string) => r === 'admin' ? '管理员' : '用户';
+
   const columns = [
-    { title: 'Username', dataIndex: 'username', key: 'username' },
+    { title: '用户名', dataIndex: 'username', key: 'username' },
     {
-      title: 'Role',
+      title: '角色',
       dataIndex: 'role',
       key: 'role',
-      render: (r: string) => <Tag color={r === 'admin' ? 'blue' : 'default'}>{r}</Tag>,
+      render: (r: string) => <Tag color={r === 'admin' ? 'blue' : 'default'}>{roleLabel(r)}</Tag>,
     },
     {
-      title: 'Status',
+      title: '状态',
       dataIndex: 'status',
       key: 'status',
-      render: (s: string) => <Tag color={statusColor(s)}>{s}</Tag>,
+      render: (s: string) => <Tag color={statusColor(s)}>{statusLabel(s)}</Tag>,
     },
-    { title: 'Max Domains', dataIndex: 'max_domains', key: 'max_domains' },
+    { title: '域名上限', dataIndex: 'max_domains', key: 'max_domains' },
     {
-      title: 'Created',
+      title: '创建时间',
       dataIndex: 'created_at',
       key: 'created_at',
       render: (t: string) => new Date(t).toLocaleString(),
     },
     {
-      title: 'Actions',
+      title: '操作',
       key: 'actions',
       render: (_: any, r: User) => (
         <Space>
           {r.status === 'pending' && (
             <Button size="small" type="primary" icon={<CheckOutlined />} onClick={() => handleActivate(r.id)}>
-              Activate
+              激活
             </Button>
           )}
           <Button
@@ -131,7 +142,7 @@ export default function AdminUsers() {
               setEditOpen(true);
             }}
           />
-          <Popconfirm title="Delete this user?" onConfirm={() => handleDelete(r.id)}>
+          <Popconfirm title="确定删除此用户？" onConfirm={() => handleDelete(r.id)} okText="确定" cancelText="取消">
             <Button size="small" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
@@ -142,52 +153,52 @@ export default function AdminUsers() {
   return (
     <>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>Users</h2>
+        <h2 style={{ margin: 0 }}>用户管理</h2>
         <Space>
           <Select
             value={statusFilter}
             onChange={setStatusFilter}
             style={{ width: 120 }}
             options={[
-              { value: '', label: 'All' },
-              { value: 'pending', label: 'Pending' },
-              { value: 'active', label: 'Active' },
-              { value: 'disabled', label: 'Disabled' },
+              { value: '', label: '全部' },
+              { value: 'pending', label: '待审核' },
+              { value: 'active', label: '已激活' },
+              { value: 'disabled', label: '已禁用' },
             ]}
           />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-            Create User
+            创建用户
           </Button>
         </Space>
       </div>
       <Table dataSource={users} columns={columns} rowKey="id" loading={loading} />
 
-      <Modal title="Create User" open={createOpen} onCancel={() => setCreateOpen(false)} onOk={() => createForm.submit()} destroyOnClose>
+      <Modal title="创建用户" open={createOpen} onCancel={() => setCreateOpen(false)} onOk={() => createForm.submit()} destroyOnClose okText="确定" cancelText="取消">
         <Form form={createForm} onFinish={handleCreate} layout="vertical" preserve={false}>
-          <Form.Item name="username" label="Username" rules={[{ required: true }]}>
+          <Form.Item name="username" label="用户名" rules={[{ required: true, message: '请输入用户名' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="password" label="Password" rules={[{ required: true }]}>
+          <Form.Item name="password" label="密码" rules={[{ required: true, message: '请输入密码' }]}>
             <Input.Password />
           </Form.Item>
-          <Form.Item name="role" label="Role" initialValue="user">
-            <Select options={[{ value: 'user', label: 'User' }, { value: 'admin', label: 'Admin' }]} />
+          <Form.Item name="role" label="角色" initialValue="user">
+            <Select options={[{ value: 'user', label: '用户' }, { value: 'admin', label: '管理员' }]} />
           </Form.Item>
-          <Form.Item name="max_domains" label="Max Domains" initialValue={5}>
+          <Form.Item name="max_domains" label="域名上限" initialValue={5}>
             <InputNumber min={1} />
           </Form.Item>
         </Form>
       </Modal>
 
-      <Modal title="Edit User" open={editOpen} onCancel={() => setEditOpen(false)} onOk={() => editForm.submit()} destroyOnClose>
+      <Modal title="编辑用户" open={editOpen} onCancel={() => setEditOpen(false)} onOk={() => editForm.submit()} destroyOnClose okText="确定" cancelText="取消">
         <Form form={editForm} onFinish={handleEdit} layout="vertical" preserve={false}>
-          <Form.Item name="role" label="Role">
-            <Select options={[{ value: 'user', label: 'User' }, { value: 'admin', label: 'Admin' }]} />
+          <Form.Item name="role" label="角色">
+            <Select options={[{ value: 'user', label: '用户' }, { value: 'admin', label: '管理员' }]} />
           </Form.Item>
-          <Form.Item name="status" label="Status">
-            <Select options={[{ value: 'active', label: 'Active' }, { value: 'pending', label: 'Pending' }, { value: 'disabled', label: 'Disabled' }]} />
+          <Form.Item name="status" label="状态">
+            <Select options={[{ value: 'active', label: '已激活' }, { value: 'pending', label: '待审核' }, { value: 'disabled', label: '已禁用' }]} />
           </Form.Item>
-          <Form.Item name="max_domains" label="Max Domains">
+          <Form.Item name="max_domains" label="域名上限">
             <InputNumber min={1} />
           </Form.Item>
         </Form>

@@ -29,7 +29,7 @@ export default function Domains() {
       const res = await getDomains();
       setDomains(res.data || []);
     } catch {
-      message.error('Failed to load domains');
+      message.error('加载域名失败');
     } finally {
       setLoading(false);
     }
@@ -44,20 +44,20 @@ export default function Domains() {
 
   const handleAdd = async () => {
     if (!subdomain.trim()) {
-      message.warning('Please enter a subdomain');
+      message.warning('请输入子域名');
       return;
     }
     setSubmitting(true);
     try {
       const res = await createDomain(subdomain.trim());
-      message.success('Domain created');
+      message.success('域名创建成功');
       setNewDomain(res.data);
       setAddOpen(false);
       setSubdomain('');
       setConfigOpen(true);
       fetchDomains();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to create domain');
+      message.error(err.response?.data?.error || '创建域名失败');
     } finally {
       setSubmitting(false);
     }
@@ -66,23 +66,23 @@ export default function Domains() {
   const handleDelete = async (id: number) => {
     try {
       await deleteDomain(id);
-      message.success('Domain deleted');
+      message.success('域名已删除');
       fetchDomains();
     } catch (err: any) {
-      message.error(err.response?.data?.error || 'Failed to delete');
+      message.error(err.response?.data?.error || '删除失败');
     }
   };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text).then(() => {
-      message.success('Copied!');
+      message.success('已复制');
     }).catch(() => {
-      message.error('Copy failed');
+      message.error('复制失败');
     });
   };
 
   const frpcConfig = (d: Domain) =>
-    `serverAddr = "${baseDomain || 'example.com'}"
+    `serverAddr = "frps.${baseDomain || 'example.com'}"
 serverPort = 7000
 metadatas.token = "${d.token}"
 
@@ -93,9 +93,9 @@ localPort = 3000
 subdomain = "${d.subdomain}"`;
 
   const columns = [
-    { title: 'Subdomain', dataIndex: 'subdomain', key: 'subdomain' },
+    { title: '子域名', dataIndex: 'subdomain', key: 'subdomain' },
     {
-      title: 'Full Domain',
+      title: '完整域名',
       key: 'full_domain',
       render: (_: any, r: Domain) => `${r.subdomain}.${baseDomain || 'example.com'}`,
     },
@@ -113,28 +113,30 @@ subdomain = "${d.subdomain}"`;
       ),
     },
     {
-      title: 'Status',
+      title: '状态',
       dataIndex: 'status',
       key: 'status',
       render: (s: string) => (
-        <Tag color={s === 'active' ? 'green' : s === 'disabled' ? 'red' : 'default'}>{s}</Tag>
+        <Tag color={s === 'active' ? 'green' : s === 'disabled' ? 'red' : 'default'}>
+          {s === 'active' ? '启用' : s === 'disabled' ? '禁用' : s}
+        </Tag>
       ),
     },
     {
-      title: 'Created',
+      title: '创建时间',
       dataIndex: 'created_at',
       key: 'created_at',
       render: (t: string) => new Date(t).toLocaleString(),
     },
     {
-      title: 'Actions',
+      title: '操作',
       key: 'actions',
       render: (_: any, r: Domain) => (
         <Space>
           <Button size="small" onClick={() => { setNewDomain(r); setConfigOpen(true); }}>
-            Config
+            配置
           </Button>
-          <Popconfirm title="Delete this domain?" onConfirm={() => handleDelete(r.id)}>
+          <Popconfirm title="确定删除此域名？" onConfirm={() => handleDelete(r.id)} okText="确定" cancelText="取消">
             <Button size="small" danger icon={<DeleteOutlined />} />
           </Popconfirm>
         </Space>
@@ -145,22 +147,24 @@ subdomain = "${d.subdomain}"`;
   return (
     <>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ margin: 0 }}>My Domains</h2>
+        <h2 style={{ margin: 0 }}>我的域名</h2>
         <Button type="primary" icon={<PlusOutlined />} onClick={() => setAddOpen(true)}>
-          Add Domain
+          添加域名
         </Button>
       </div>
       <Table dataSource={domains} columns={columns} rowKey="id" loading={loading} />
 
       <Modal
-        title="Add Domain"
+        title="添加域名"
         open={addOpen}
         onOk={handleAdd}
         onCancel={() => { setAddOpen(false); setSubdomain(''); }}
         confirmLoading={submitting}
+        okText="确定"
+        cancelText="取消"
       >
         <Input
-          placeholder="Enter subdomain"
+          placeholder="请输入子域名"
           value={subdomain}
           onChange={(e) => setSubdomain(e.target.value)}
           onPressEnter={handleAdd}
@@ -168,15 +172,15 @@ subdomain = "${d.subdomain}"`;
       </Modal>
 
       <Modal
-        title="FRPC Configuration"
+        title="FRPC 配置"
         open={configOpen}
         onCancel={() => setConfigOpen(false)}
         footer={[
           <Button key="copy" type="primary" onClick={() => newDomain && copyToClipboard(frpcConfig(newDomain))}>
-            Copy Config
+            复制配置
           </Button>,
           <Button key="close" onClick={() => setConfigOpen(false)}>
-            Close
+            关闭
           </Button>,
         ]}
         width={600}
