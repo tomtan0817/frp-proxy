@@ -26,8 +26,21 @@ type CreateDomainRequest struct {
 	Subdomain string `json:"subdomain" binding:"required,min=1,max=64"`
 }
 
+func getUserID(c *gin.Context) (uint, bool) {
+	val, exists := c.Get("user_id")
+	if !exists {
+		return 0, false
+	}
+	id, ok := val.(uint)
+	return id, ok
+}
+
 func (h *DomainHandler) List(c *gin.Context) {
-	userID := c.MustGet("user_id").(uint)
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
+		return
+	}
 	domains, err := h.domainSvc.ListByUser(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -37,7 +50,11 @@ func (h *DomainHandler) List(c *gin.Context) {
 }
 
 func (h *DomainHandler) Create(c *gin.Context) {
-	userID := c.MustGet("user_id").(uint)
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
+		return
+	}
 	var req CreateDomainRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -53,7 +70,11 @@ func (h *DomainHandler) Create(c *gin.Context) {
 }
 
 func (h *DomainHandler) Delete(c *gin.Context) {
-	userID := c.MustGet("user_id").(uint)
+	userID, ok := getUserID(c)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid session"})
+		return
+	}
 	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})

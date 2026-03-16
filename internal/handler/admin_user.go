@@ -53,11 +53,20 @@ func (h *AdminUserHandler) Create(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	validRoles := map[string]bool{"admin": true, "user": true}
 	role := req.Role
 	if role == "" {
 		role = "user"
 	}
+	if !validRoles[role] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid role"})
+		return
+	}
 	maxDomains := req.MaxDomains
+	if maxDomains < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "max_domains must be non-negative"})
+		return
+	}
 	if maxDomains == 0 {
 		maxDomains = 1
 	}
