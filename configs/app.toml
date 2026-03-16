@@ -1,0 +1,19 @@
+# configs/app.toml
+[server]
+host = "127.0.0.1"
+port = 5040
+
+[database]
+host = "127.0.0.1"
+port = 5432
+user = "frpproxy"
+password = "changeme"
+dbname = "frpproxy"
+sslmode = "disable"
+
+[jwt]
+secret = "change-this-to-a-random-string"
+expire_hour = 72
+
+[domain]
+base_domain = "example.com"
