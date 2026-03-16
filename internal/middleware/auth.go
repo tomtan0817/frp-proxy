@@ -26,9 +26,28 @@ func AuthRequired(authSvc *service.AuthService) gin.HandlerFunc {
 			return
 		}
 
-		c.Set("user_id", uint(claims["user_id"].(float64)))
-		c.Set("username", claims["username"].(string))
-		c.Set("role", claims["role"].(string))
+		userIDFloat, ok := claims["user_id"].(float64)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			c.Abort()
+			return
+		}
+		username, ok := claims["username"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			c.Abort()
+			return
+		}
+		role, ok := claims["role"].(string)
+		if !ok {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+			c.Abort()
+			return
+		}
+
+		c.Set("user_id", uint(userIDFloat))
+		c.Set("username", username)
+		c.Set("role", role)
 		c.Next()
 	}
 }

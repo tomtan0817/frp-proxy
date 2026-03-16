@@ -13,6 +13,11 @@ type Config struct {
 	Database DatabaseConfig `toml:"database"`
 	JWT      JWTConfig      `toml:"jwt"`
 	Domain   DomainConfig   `toml:"domain"`
+	Plugin   PluginConfig   `toml:"plugin"`
+}
+
+type PluginConfig struct {
+	Secret string `toml:"secret"`
 }
 
 type ServerConfig struct {

@@ -80,6 +80,18 @@ func (h *AdminUserHandler) Update(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	validRoles := map[string]bool{"admin": true, "user": true}
+	validStatuses := map[string]bool{"pending": true, "active": true, "disabled": true}
+
+	if req.Role != "" && !validRoles[req.Role] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid role"})
+		return
+	}
+	if req.Status != "" && !validStatuses[req.Status] {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid status"})
+		return
+	}
+
 	updates := make(map[string]interface{})
 	if req.MaxDomains != nil {
 		updates["max_domains"] = *req.MaxDomains

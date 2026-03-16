@@ -17,3 +17,6 @@ expire_hour = 72
 
 [domain]
 base_domain = "example.com"
+
+[plugin]
+secret = "change-this-plugin-secret"

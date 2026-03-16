@@ -36,24 +36,33 @@ func (s *AuthService) Register(username, password, inviteCode string) (*model.Us
 	}
 
 	if inviteCode != "" {
-		var code model.InviteCode
-		err := s.db.Where("code = ?", inviteCode).First(&code).Error
+		err := s.db.Transaction(func(tx *gorm.DB) error {
+			var code model.InviteCode
+			if err := tx.Where("code = ?", inviteCode).First(&code).Error; err != nil {
+				return errors.New("invalid invite code")
+			}
+			if code.UsedCount >= code.MaxUses {
+				return errors.New("invite code exhausted")
+			}
+			if code.ExpiresAt != nil && code.ExpiresAt.Before(time.Now()) {
+				return errors.New("invite code expired")
+			}
+			user.Status = "active"
+			if err := tx.Create(&user).Error; err != nil {
+				return errors.New("username already exists")
+			}
+			// Atomic increment with condition
+			result := tx.Model(&model.InviteCode{}).
+				Where("id = ? AND used_count < max_uses", code.ID).
+				Update("used_count", gorm.Expr("used_count + 1"))
+			if result.RowsAffected == 0 {
+				return errors.New("invite code exhausted")
+			}
+			return nil
+		})
 		if err != nil {
-			return nil, errors.New("invalid invite code")
+			return nil, err
 		}
-		if code.UsedCount >= code.MaxUses {
-			return nil, errors.New("invite code exhausted")
-		}
-		if code.ExpiresAt != nil && code.ExpiresAt.Before(time.Now()) {
-			return nil, errors.New("invite code expired")
-		}
-		user.Status = "active"
-
-		if err := s.db.Create(&user).Error; err != nil {
-			return nil, errors.New("username already exists")
-		}
-
-		s.db.Model(&code).Update("used_count", code.UsedCount+1)
 		return &user, nil
 	}
 
@@ -89,6 +98,9 @@ func (s *AuthService) Login(username, password string) (string, error) {
 
 func (s *AuthService) ParseToken(tokenStr string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenStr, func(t *jwt.Token) (interface{}, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
 		return []byte(s.jwtSecret), nil
 	})
 	if err != nil || !token.Valid {

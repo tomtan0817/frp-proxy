@@ -62,6 +62,10 @@ func (s *UserService) Activate(id uint) error {
 }
 
 func (s *UserService) Delete(id uint) error {
-	s.db.Where("user_id = ?", id).Delete(&model.Domain{})
-	return s.db.Delete(&model.User{}, id).Error
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Where("user_id = ?", id).Delete(&model.Domain{}).Error; err != nil {
+			return err
+		}
+		return tx.Delete(&model.User{}, id).Error
+	})
 }

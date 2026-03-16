@@ -60,7 +60,7 @@ func main() {
 	adminUserH := handler.NewAdminUserHandler(userSvc)
 	adminDomainH := handler.NewAdminDomainHandler(domainSvc)
 	adminInviteH := handler.NewAdminInviteHandler(inviteSvc)
-	pluginH := handler.NewPluginHandler(domainSvc)
+	pluginH := handler.NewPluginHandler(domainSvc, cfg.Plugin.Secret)
 
 	r := gin.Default()
 
@@ -127,12 +127,13 @@ func main() {
 		log.Fatalf("failed to get embedded frontend: %v", err)
 	}
 
+	fileServer := http.FileServer(http.FS(distFS))
 	r.NoRoute(func(c *gin.Context) {
 		// Try static file first
 		path := strings.TrimPrefix(c.Request.URL.Path, "/")
 		_, err := fs.Stat(distFS, path)
 		if err == nil {
-			http.FileServer(http.FS(distFS)).ServeHTTP(c.Writer, c.Request)
+			fileServer.ServeHTTP(c.Writer, c.Request)
 			return
 		}
 		// SPA fallback: serve index.html

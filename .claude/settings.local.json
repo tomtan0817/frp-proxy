@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(go mod:*)",
+      "Bash(go:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
+    ]
+  }
+}

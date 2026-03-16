@@ -10,10 +10,11 @@ import (
 
 type PluginHandler struct {
 	domainSvc *service.DomainService
+	secret    string
 }
 
-func NewPluginHandler(domainSvc *service.DomainService) *PluginHandler {
-	return &PluginHandler{domainSvc: domainSvc}
+func NewPluginHandler(domainSvc *service.DomainService, secret string) *PluginHandler {
+	return &PluginHandler{domainSvc: domainSvc, secret: secret}
 }
 
 type PluginRequest struct {
@@ -23,6 +24,14 @@ type PluginRequest struct {
 }
 
 func (h *PluginHandler) Login(c *gin.Context) {
+	// Check plugin secret
+	if h.secret != "" {
+		if c.GetHeader("X-Plugin-Secret") != h.secret {
+			c.JSON(http.StatusForbidden, gin.H{"reject": true, "reject_reason": "unauthorized"})
+			return
+		}
+	}
+
 	var req PluginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusOK, gin.H{"reject": true, "reject_reason": "invalid request"})
@@ -53,6 +62,14 @@ func (h *PluginHandler) Login(c *gin.Context) {
 }
 
 func (h *PluginHandler) NewProxy(c *gin.Context) {
+	// Check plugin secret
+	if h.secret != "" {
+		if c.GetHeader("X-Plugin-Secret") != h.secret {
+			c.JSON(http.StatusForbidden, gin.H{"reject": true, "reject_reason": "unauthorized"})
+			return
+		}
+	}
+
 	var req PluginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusOK, gin.H{"reject": true, "reject_reason": "invalid request"})
