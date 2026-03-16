@@ -87,7 +87,7 @@ serverPort = 7000
 metadatas.token = "${d.token}"
 
 [[proxies]]
-name = "web"
+name = "${d.subdomain}"
 type = "http"
 localPort = 3000
 subdomain = "${d.subdomain}"`;
