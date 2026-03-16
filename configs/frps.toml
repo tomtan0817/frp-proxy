@@ -1,0 +1,15 @@
+# frps configuration for use with frp-proxy panel
+bindPort = 7000
+vhostHTTPPort = 8081
+subDomainHost = "example.com"
+
+[httpPlugins]
+  [httpPlugins.login]
+    addr = "http://127.0.0.1:5040/api/plugin/login"
+    path = "/api/plugin/login"
+    ops = ["Login"]
+
+  [httpPlugins.new-proxy]
+    addr = "http://127.0.0.1:5040/api/plugin/new-proxy"
+    path = "/api/plugin/new-proxy"
+    ops = ["NewProxy"]

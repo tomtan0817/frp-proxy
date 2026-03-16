@@ -1,0 +1,11 @@
+# Example frpc configuration
+# Get your token from the frp-proxy panel
+serverAddr = "example.com"
+serverPort = 7000
+metadatas.token = "your-token-from-panel"
+
+[[proxies]]
+name = "web"
+type = "http"
+localPort = 3000
+subdomain = "your-subdomain"

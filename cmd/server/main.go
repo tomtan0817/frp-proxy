@@ -3,13 +3,17 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/fs"
 	"log"
+	"net/http"
+	"strings"
 
 	"frp-proxy/internal/config"
 	"frp-proxy/internal/database"
 	"frp-proxy/internal/handler"
 	"frp-proxy/internal/middleware"
 	"frp-proxy/internal/service"
+	frpweb "frp-proxy/web"
 
 	"github.com/gin-gonic/gin"
 )
@@ -116,6 +120,29 @@ func main() {
 			invites.DELETE("/:id", adminInviteH.Delete)
 		}
 	}
+
+	// Serve embedded frontend
+	distFS, err := fs.Sub(frpweb.DistFS, "dist")
+	if err != nil {
+		log.Fatalf("failed to get embedded frontend: %v", err)
+	}
+
+	r.NoRoute(func(c *gin.Context) {
+		// Try static file first
+		path := strings.TrimPrefix(c.Request.URL.Path, "/")
+		_, err := fs.Stat(distFS, path)
+		if err == nil {
+			http.FileServer(http.FS(distFS)).ServeHTTP(c.Writer, c.Request)
+			return
+		}
+		// SPA fallback: serve index.html
+		indexFile, err := fs.ReadFile(distFS, "index.html")
+		if err != nil {
+			c.String(http.StatusNotFound, "not found")
+			return
+		}
+		c.Data(http.StatusOK, "text/html; charset=utf-8", indexFile)
+	})
 
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	log.Printf("Server starting on %s", addr)
