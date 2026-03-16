@@ -56,7 +56,7 @@ func main() {
 
 	// Handlers
 	authH := handler.NewAuthHandler(authSvc)
-	domainH := handler.NewDomainHandler(domainSvc)
+	domainH := handler.NewDomainHandler(domainSvc, cfg.Domain.BaseDomain)
 	adminUserH := handler.NewAdminUserHandler(userSvc)
 	adminDomainH := handler.NewAdminDomainHandler(domainSvc)
 	adminInviteH := handler.NewAdminInviteHandler(inviteSvc)
@@ -72,6 +72,8 @@ func main() {
 			auth.POST("/register", authH.Register)
 			auth.POST("/login", authH.Login)
 		}
+
+		api.GET("/config", domainH.GetConfig)
 
 		// frps plugin endpoints (no JWT, called by frps internally)
 		plugin := api.Group("/plugin")

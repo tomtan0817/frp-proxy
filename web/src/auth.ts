@@ -4,7 +4,14 @@ export const removeToken = () => localStorage.removeItem('token');
 
 export const parseJwt = (token: string) => {
   try {
-    return JSON.parse(atob(token.split('.')[1]));
+    let base64 = token.split('.')[1];
+    // Convert Base64URL to standard Base64
+    base64 = base64.replace(/-/g, '+').replace(/_/g, '/');
+    // Add padding
+    while (base64.length % 4) {
+      base64 += '=';
+    }
+    return JSON.parse(atob(base64));
   } catch {
     return null;
   }

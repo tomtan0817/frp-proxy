@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Table, Button, Modal, Input, message, Tag, Space, Popconfirm, Typography } from 'antd';
 import { PlusOutlined, CopyOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getDomains, createDomain, deleteDomain } from '../api';
+import { getDomains, createDomain, deleteDomain, getConfig } from '../api';
 
 const { Paragraph } = Typography;
 
 interface Domain {
   id: number;
   subdomain: string;
-  domain: string;
   token: string;
   status: string;
   created_at: string;
@@ -22,6 +21,7 @@ export default function Domains() {
   const [subdomain, setSubdomain] = useState('');
   const [newDomain, setNewDomain] = useState<Domain | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [baseDomain, setBaseDomain] = useState('');
 
   const fetchDomains = async () => {
     setLoading(true);
@@ -37,6 +37,9 @@ export default function Domains() {
 
   useEffect(() => {
     fetchDomains();
+    getConfig().then(res => {
+      setBaseDomain(res.data?.base_domain || '');
+    }).catch(() => {});
   }, []);
 
   const handleAdd = async () => {
@@ -71,11 +74,15 @@ export default function Domains() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => message.success('Copied'));
+    navigator.clipboard.writeText(text).then(() => {
+      message.success('Copied!');
+    }).catch(() => {
+      message.error('Copy failed');
+    });
   };
 
   const frpcConfig = (d: Domain) =>
-    `serverAddr = "${d.domain || 'example.com'}"
+    `serverAddr = "${baseDomain || 'example.com'}"
 serverPort = 7000
 metadatas.token = "${d.token}"
 
@@ -90,7 +97,7 @@ subdomain = "${d.subdomain}"`;
     {
       title: 'Full Domain',
       key: 'full_domain',
-      render: (_: any, r: Domain) => `${r.subdomain}.${r.domain || 'example.com'}`,
+      render: (_: any, r: Domain) => `${r.subdomain}.${baseDomain || 'example.com'}`,
     },
     {
       title: 'Token',
@@ -99,7 +106,7 @@ subdomain = "${d.subdomain}"`;
       render: (token: string) => (
         <Space>
           <span style={{ fontFamily: 'monospace', fontSize: 12 }}>
-            {token.substring(0, 16)}...
+            {token?.substring(0, 16) || ''}...
           </span>
           <Button size="small" icon={<CopyOutlined />} onClick={() => copyToClipboard(token)} />
         </Space>

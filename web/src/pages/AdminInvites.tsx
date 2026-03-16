@@ -57,7 +57,11 @@ export default function AdminInvites() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => message.success('Copied'));
+    navigator.clipboard.writeText(text).then(() => {
+      message.success('Copied!');
+    }).catch(() => {
+      message.error('Copy failed');
+    });
   };
 
   const columns = [

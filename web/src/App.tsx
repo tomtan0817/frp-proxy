@@ -72,6 +72,7 @@ function App() {
           }
         />
         <Route path="/" element={<Navigate to="/domains" replace />} />
+        <Route path="*" element={<Navigate to="/domains" replace />} />
       </Routes>
     </BrowserRouter>
   );

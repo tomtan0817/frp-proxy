@@ -10,11 +10,16 @@ import (
 )
 
 type DomainHandler struct {
-	domainSvc *service.DomainService
+	domainSvc  *service.DomainService
+	baseDomain string
 }
 
-func NewDomainHandler(domainSvc *service.DomainService) *DomainHandler {
-	return &DomainHandler{domainSvc: domainSvc}
+func NewDomainHandler(domainSvc *service.DomainService, baseDomain string) *DomainHandler {
+	return &DomainHandler{domainSvc: domainSvc, baseDomain: baseDomain}
+}
+
+func (h *DomainHandler) GetConfig(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"base_domain": h.baseDomain})
 }
 
 type CreateDomainRequest struct {

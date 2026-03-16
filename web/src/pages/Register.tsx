@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Form, Input, Button, Card, Typography, message } from 'antd';
 import { UserOutlined, LockOutlined, KeyOutlined } from '@ant-design/icons';
 import { register } from '../api';
@@ -8,15 +8,18 @@ const { Title } = Typography;
 
 export default function Register() {
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const onFinish = async (values: { username: string; password: string; invite_code?: string }) => {
     setLoading(true);
     try {
-      await register(values.username, values.password, values.invite_code || undefined);
-      if (values.invite_code) {
-        message.success('Account activated! You can now login.');
+      const res = await register(values.username, values.password, values.invite_code || undefined);
+      const status = res.data.user?.status;
+      if (status === 'active') {
+        message.success('Account activated! Redirecting to login...');
+        setTimeout(() => navigate('/login'), 1500);
       } else {
-        message.success('Registration successful, please wait for admin approval.');
+        message.success('Registration successful. Please wait for admin approval.');
       }
     } catch (err: any) {
       message.error(err.response?.data?.error || 'Registration failed');
@@ -33,7 +36,10 @@ export default function Register() {
           <Form.Item name="username" rules={[{ required: true, message: 'Please enter username' }]}>
             <Input prefix={<UserOutlined />} placeholder="Username" />
           </Form.Item>
-          <Form.Item name="password" rules={[{ required: true, message: 'Please enter password' }]}>
+          <Form.Item name="password" rules={[
+            { required: true, message: 'Please enter password' },
+            { min: 6, message: 'Password must be at least 6 characters' }
+          ]}>
             <Input.Password prefix={<LockOutlined />} placeholder="Password" />
           </Form.Item>
           <Form.Item name="invite_code">

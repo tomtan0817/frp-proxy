@@ -30,6 +30,9 @@ export const login = (username: string, password: string) =>
 export const register = (username: string, password: string, invite_code?: string) =>
   api.post('/auth/register', { username, password, invite_code });
 
+// Config
+export const getConfig = () => api.get('/config');
+
 // Domains
 export const getDomains = () => api.get('/domains');
 export const createDomain = (subdomain: string) => api.post('/domains', { subdomain });

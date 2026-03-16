@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Table, Button, Modal, Form, Input, InputNumber, message, Tag, Space, Popconfirm } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { getAllDomains, adminCreateDomain, adminUpdateDomain, adminDeleteDomain } from '../api';
+import { getAllDomains, adminCreateDomain, adminUpdateDomain, adminDeleteDomain, getConfig } from '../api';
 
 interface DomainRecord {
   id: number;
   subdomain: string;
-  domain: string;
   user_id: number;
-  username: string;
+  user?: { username: string };
   token: string;
   status: string;
   created_at: string;
@@ -19,6 +18,7 @@ export default function AdminDomains() {
   const [loading, setLoading] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [form] = Form.useForm();
+  const [baseDomain, setBaseDomain] = useState('');
 
   const fetchDomains = async () => {
     setLoading(true);
@@ -34,6 +34,9 @@ export default function AdminDomains() {
 
   useEffect(() => {
     fetchDomains();
+    getConfig().then(res => {
+      setBaseDomain(res.data?.base_domain || '');
+    }).catch(() => {});
   }, []);
 
   const handleCreate = async (values: any) => {
@@ -70,12 +73,25 @@ export default function AdminDomains() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => message.success('Copied'));
+    navigator.clipboard.writeText(text).then(() => {
+      message.success('Copied!');
+    }).catch(() => {
+      message.error('Copy failed');
+    });
   };
 
   const columns = [
     { title: 'Subdomain', dataIndex: 'subdomain', key: 'subdomain' },
-    { title: 'User', dataIndex: 'username', key: 'username' },
+    {
+      title: 'Full Domain',
+      key: 'full_domain',
+      render: (_: any, r: DomainRecord) => `${r.subdomain}.${baseDomain || 'example.com'}`,
+    },
+    {
+      title: 'User',
+      key: 'username',
+      render: (_: any, record: any) => record.user?.username || '-',
+    },
     {
       title: 'Token',
       dataIndex: 'token',
